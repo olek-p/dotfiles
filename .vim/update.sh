@@ -7,8 +7,8 @@
 repos=(
 
   airblade/vim-gitgutter
-  alampros/vim-styled-jsx
-  altercation/vim-colors-solarized
+#  alampros/vim-styled-jsx
+#  altercation/vim-colors-solarized
   ap/vim-css-color
   docunext/closetag.vim
   ervandew/supertab
@@ -38,8 +38,13 @@ repos=(
 
 )
 
+optional=(
+  fatih/vim-go
+)
+
 set -e
 dir=~/.dotfiles/.vim/bundle
+diroptional=~/.dotfiles/.vim/bundle-optional
 
 if [ -d $dir -a -z "$1" ]; then
   temp="$(mktemp -d -t bundleXXXXX)"
@@ -47,7 +52,13 @@ if [ -d $dir -a -z "$1" ]; then
   mv "$dir" "$temp"
 fi
 
-mkdir -p $dir
+if [ -d $diroptional -a -z "$1" ]; then
+  temp="$(mktemp -d -t bundleoptionalXXXXX)"
+  echo "▲ Moving old bundle dir to $temp"
+  mv "$diroptional" "$temp"
+fi
+
+mkdir -p $dir $diroptional
 
 for repo in ${repos[@]}; do
   if [ -n "$1" ]; then
@@ -58,6 +69,23 @@ for repo in ${repos[@]}; do
   plugin="$(basename $repo | sed -e 's/\.git$//')"
   [ "$plugin" = "vim-styled-jsx" ] && plugin="000-vim-styled-jsx" # https://goo.gl/tJVPja
   dest="$dir/$plugin"
+  rm -rf $dest
+  (
+    git clone --depth=1 -q https://github.com/$repo $dest
+    rm -rf $dest/.git
+    echo "· Cloned $repo"
+  ) &
+done
+
+for repo in ${optional[@]}; do
+  if [ -n "$1" ]; then
+    if ! (echo "$repo" | grep -i "$1" &>/dev/null) ; then
+      continue
+    fi
+  fi
+  plugin="$(basename $repo | sed -e 's/\.git$//')"
+  [ "$plugin" = "vim-styled-jsx" ] && plugin="000-vim-styled-jsx" # https://goo.gl/tJVPja
+  dest="$diroptional/$plugin"
   rm -rf $dest
   (
     git clone --depth=1 -q https://github.com/$repo $dest

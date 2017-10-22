@@ -1,0 +1,3 @@
+source ~/.vim/vimrc
+
+execute pathogen#infect('bundle-optional/vim-go')
